@@ -17,14 +17,20 @@ void serializeDrawable(drawable_t* drawable, const char* fileName){
     }
 
     // Write color info
-    FileHeader rgbMarker = { "RGB:" };
-    fwrite(&rgbMarker, sizeof(FileHeader), 1, file);
+    FileHeader rgbMarker = ":CO:";
+    FileHeader buffer;
+    fread(&buffer, sizeof(FileHeader), 1, file);
+    if(strcmp(rgbMarker, buffer) == 0){
+        printf("\nColor header found, will append \n");
+    } else {
+        fwrite(&rgbMarker, sizeof(FileHeader), 1, file);
 
-    fwrite(&drawable->color, sizeof(RGB_t), 1, file);
+        fwrite(&drawable->color, sizeof(RGB_t), 1, file);
 
-    //Write XY draw nodes
-    FileHeader xyMarker = { "XY:" };
-    fwrite(&xyMarker, sizeof(FileHeader), 1, file);
+        //Write XY draw nodes
+        FileHeader xyMarker = { ":XY:" };
+        fwrite(&xyMarker, sizeof(FileHeader), 1, file);
+    }
 
     drawNode_t* curr = drawable->head;
     while (curr){
@@ -45,11 +51,13 @@ bool deserializeDrawable(const char* fileName, drawable_t* newDrawable){
     }
     // Read the marker
     FileHeader marker;
-    fread(&marker, sizeof(FileHeader), 1, file);
+    fread(&marker, sizeof(char[4]), 1, file);
 
     // Check the marker to determine the type of data
+    printf("is it true: %d\n\n", strcmp(marker, ":CO:"));
+    printf("%s", marker);
     printf("firts steps\n");
-    if (strcmp(marker.marker, "RGB:") == 0) {
+    if (strcmp(marker, ":CO:") == 0) {
         // Read RGB information
         fread(&newDrawable->color, sizeof(RGB_t), 1, file);
         printf("R: %d, G: %d, B: %d, A: %d\n", newDrawable->color.r, newDrawable->color.g, newDrawable->color.b, newDrawable->color.a);

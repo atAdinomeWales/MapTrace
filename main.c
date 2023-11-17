@@ -89,7 +89,7 @@ int main(int argc, char** argv){
         }
     }
 
-    serializeDrawable(blob, "blob_savefile");
+    //serializeDrawable(blob, "blob_savefile");
     //wHeader();
     freeDrawable(blob);
 
