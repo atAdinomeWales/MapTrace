@@ -5,19 +5,6 @@
 #include "MapTrace.h"
 #include "IoHandler.h"
 
-void wHeader(){
-    FILE* file = fopen("blob_savefile", "wb");
-
-    FileHeader rgbMarker = { "RGB:" };
-    fwrite(&rgbMarker, sizeof(FileHeader), 1, file);
-
-    RGB_t col;
-    col.a = 213;
-    col.r = 111;
-    col.g = 211;
-    col.b = 45;
-    fwrite(&col, sizeof(RGB_t), 1, file);
-}
 
 int main(int argc, char** argv){
     // SDL Setup
@@ -89,8 +76,7 @@ int main(int argc, char** argv){
         }
     }
 
-    //serializeDrawable(blob, "blob_savefile");
-    //wHeader();
+    serializeDrawable(blob, "blob_savefile");
     freeDrawable(blob);
 
     SDL_DestroyWindow(window);

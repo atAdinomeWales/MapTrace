@@ -9,7 +9,7 @@ void serializeDrawable(drawable_t* drawable, const char* fileName){
         return;
     }
 
-    FILE* file = fopen(fileName, "ab");
+    FILE* file = fopen(fileName, "wb");
 
     if (!file){
         fprintf(stderr, "Could not open file");
@@ -51,21 +51,15 @@ bool deserializeDrawable(const char* fileName, drawable_t* newDrawable){
     }
     // Read the marker
     FileHeader marker;
-    fread(&marker, sizeof(char[4]), 1, file);
+    fread(&marker, sizeof(FileHeader), 1, file);
 
-    // Check the marker to determine the type of data
-    printf("is it true: %d\n\n", strcmp(marker, ":CO:"));
-    printf("%s", marker);
-    printf("firts steps\n");
-    if (strcmp(marker, ":CO:") == 0) {
+    if (memcmp(marker, ":CO:", sizeof(marker)) == 0) {
         // Read RGB information
         fread(&newDrawable->color, sizeof(RGB_t), 1, file);
         printf("R: %d, G: %d, B: %d, A: %d\n", newDrawable->color.r, newDrawable->color.g, newDrawable->color.b, newDrawable->color.a);
-        printf("always\n");
         // Read the marker for XY coordinates
         fread(&marker, sizeof(FileHeader), 1, file);
     }
-    printf("seem tiny\n");
 
 
     newDrawable->head = NULL;

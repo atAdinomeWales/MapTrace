@@ -3,7 +3,7 @@
 
 #include "MapTrace.h"
 
-typedef char FileHeader[5];
+typedef char FileHeader[4];
 
 void serializeDrawable(drawable_t* drawable, const char* fileName);
 bool deserializeDrawable(const char* fileName, drawable_t* newDrawable);
