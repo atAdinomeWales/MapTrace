@@ -3,7 +3,21 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include "MapTrace.h"
+#include "IoHandler.h"
 
+void wHeader(){
+    FILE* file = fopen("blob_savefile", "wb");
+
+    FileHeader rgbMarker = { "RGB:" };
+    fwrite(&rgbMarker, sizeof(FileHeader), 1, file);
+
+    RGB_t col;
+    col.a = 213;
+    col.r = 111;
+    col.g = 211;
+    col.b = 45;
+    fwrite(&col, sizeof(RGB_t), 1, file);
+}
 
 int main(int argc, char** argv){
     // SDL Setup
@@ -19,15 +33,18 @@ int main(int argc, char** argv){
     SDL_Event event;
 
 
-    struct drawable_t* blob = malloc(sizeof(struct drawable_t));
+    drawable_t* blob = malloc(sizeof(drawable_t));
+    if (!deserializeDrawable("blob_savefile", blob)){
+        blob->head = NULL;
+        blob->tail = NULL;
+        blob->color.a = 255;
+        blob->color.r = 100;
+        blob->color.g = 100;
+        blob->color.b = 100;
+    }
     blob->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WINDOW_WIDTH, WINDOW_HEIGHT);
     blob->resX = 0;
     blob->resY = 0;
-    blob->head = NULL;
-    blob->color.a = 255;
-    blob->color.r = 100;
-    blob->color.g = 100;
-    blob->color.b = 100;
 
     int mx = 0;
     int oldmx = 0;
@@ -53,9 +70,9 @@ int main(int argc, char** argv){
                     isDragging = false;
                     break;
                 case SDL_MOUSEMOTION:
-                    if(isDragging){
+                    if (isDragging){
                         SDL_GetMouseState(&mx, &my);
-                        if((oldmx - mx > pixT || oldmx - mx < -pixT) || (oldmy - my > pixT || oldmy - my < -pixT)){
+                        if ((oldmx - mx > pixT || oldmx - mx < -pixT) || (oldmy - my > pixT || oldmy - my < -pixT)){
                             addNode(blob, (float)mx, (float)my);
                             oldmx = mx;
                             oldmy = my;
@@ -63,12 +80,18 @@ int main(int argc, char** argv){
                         renderDrawable(blob, renderer);
                     }
                     break;
+                case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_SPACE){
+                //    renderDrawable(oldBlob, renderer);
+                }
+                    break;
             }
         }
     }
 
-    freeDrawNodes(blob->head);
-    free(blob);
+    serializeDrawable(blob, "blob_savefile");
+    //wHeader();
+    freeDrawable(blob);
 
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
