@@ -5,8 +5,11 @@ SDL_FLAGS = -lSDL2
 TARGET = main
 NAME = mpt
 
-$(TARGET):
-	$(CC) $(CFLAGS) $(SDL_FLAGS) main.c -o $(NAME)
+SRC = main.c IoHandler.c MapTrace.c
+HED = IoHandler.h MapTrace.h
+
+$(TARGET): $(HED)
+	$(CC) $(CFLAGS) $(SDL_FLAGS) $(SRC) -o $(NAME)
 
 clean:
 	rm -f $(NAME)
