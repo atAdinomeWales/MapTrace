@@ -5,6 +5,7 @@
 #include "MapTrace.h"
 #include "IoHandler.h"
 
+#define FILE_NAME "blob_savefile.bin"
 
 int main(int argc, char** argv){
     // SDL Setup
@@ -21,7 +22,7 @@ int main(int argc, char** argv){
 
 
     drawable_t* blob = malloc(sizeof(drawable_t));
-    if (!deserializeDrawable("blob_savefile", blob)){
+    if (!deserializeDrawable(FILE_NAME, blob)){
         blob->head = NULL;
         blob->tail = NULL;
         blob->color.a = 255;
@@ -68,15 +69,15 @@ int main(int argc, char** argv){
                     }
                     break;
                 case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_SPACE){
-                //    renderDrawable(oldBlob, renderer);
-                }
+                    if (event.key.keysym.sym == SDLK_SPACE){
+                        renderDrawable(blob, renderer);
+                    }
                     break;
             }
         }
     }
 
-    serializeDrawable(blob, "blob_savefile");
+    //serializeDrawable(blob, FILE_NAME);
     freeDrawable(blob);
 
     SDL_DestroyWindow(window);
