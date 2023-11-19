@@ -5,7 +5,7 @@
 #include "MapTrace.h"
 #include "IoHandler.h"
 
-#define FILE_NAME "blob_savefile.bin"
+#define FILE_NAME "savefile.bin"
 
 int main(int argc, char** argv){
     // SDL Setup
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
         }
     }
 
-    //serializeDrawable(blob, FILE_NAME);
+    serializeDrawable(blob, FILE_NAME);
     freeDrawable(blob);
 
     SDL_DestroyWindow(window);

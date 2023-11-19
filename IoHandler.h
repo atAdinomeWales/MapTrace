@@ -16,6 +16,7 @@ enum headerEnum{
 };
 
 uint8_t fileHeaderCmp(FileHeader a, FileHeader b);
+int sweepMemcmp(const void* target, size_t targetSize, const void* buffer, size_t bufferSize);
 long scanForHeader(FILE* file, FileHeader hed);
 void serializeDrawable(drawable_t* drawable, const char* fileName);
 bool deserializeDrawable(const char* fileName, drawable_t* newDrawable);

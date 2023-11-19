@@ -4,6 +4,7 @@
 #include "IoHandler.h"
 #include "MapTrace.h"
 
+
 uint8_t fileHeaderCmp(FileHeader a, FileHeader b){
     if (!a || !b){
         return HED_NO_HEADER;
@@ -25,27 +26,48 @@ uint8_t fileHeaderCmp(FileHeader a, FileHeader b){
     return HED_NO_MATCH;
 }
 
+int sweepMemcmp(const void* target, size_t targetSize, const void* buffer, size_t bufferSize){
+    if (bufferSize < targetSize || !target || !buffer) {
+        return -2;
+    }
+
+    for (size_t n = 0; n < bufferSize - targetSize + 1; n++) {
+        if (memcmp((const char*)buffer + n, target, targetSize) == 0) {
+            return n;
+        }
+    }
+
+    return -1;
+}
+
 long scanForHeader(FILE* file, FileHeader hed){
     if (file == NULL || !hed){
         return -1;
     }
 
+    long currpos = ftell(file);
+
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
+    long fSize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    if(size == 0){
+    if (fSize == 0){
         return -1;
     }
-    char buffer[100];
+
+    int buffSize = sizeof(FileHeader);
+    char buffer[buffSize];
 
     while (fread(buffer, sizeof(buffer), 1, file)){
-        if (fileHeaderCmp(buffer, hed) == 0){
-            return ftell(file) - sizeof(FileHeader);
+        if (sweepMemcmp(hed, sizeof(FileHeader), buffer, buffSize) >= 0){
+            long ret  = ftell(file) - sizeof(FileHeader);
+            fseek(file, currpos, SEEK_SET);
+            return ret;
         }
     }
 
-    return -1;
+    fseek(file, currpos, SEEK_SET);
+    return -2;
 }
 
 void serializeDrawable(drawable_t* drawable, const char* fileName){
@@ -95,8 +117,8 @@ void serializeDrawable(drawable_t* drawable, const char* fileName){
         fwrite(&curr->y, sizeof(float), 1, file);
         curr = curr->next;
     }
-    //fwrite("|XY|", sizeof(FileHeader), 1, file);
-    //fwrite("|FI|", sizeof(FileHeader), 1, file);
+    fwrite("|XY|", sizeof(FileHeader), 1, file);
+    fwrite("|FI|", sizeof(FileHeader), 1, file);
 
     fclose(file);
 
@@ -105,30 +127,22 @@ void serializeDrawable(drawable_t* drawable, const char* fileName){
 
 bool deserializeDrawable(const char* fileName, drawable_t* newDrawable){
     FILE* file = fopen(fileName, "rb");
-    printf("opened\n");
     if (!file){
-        fprintf(stderr, "Could not open file");
         return false;
     }
 
     FileHeader marker;
     //Check for FILE headers
     fread(&marker, sizeof(FileHeader), 1, file);
-    printf("read first marker, it is %s\n", marker);
     if (fileHeaderCmp(marker, ":FI:")){
-        printf("dindt find :FI:, found this though %s\n", marker);
         return false;
     } else {
-        /*fseek(file, -sizeof(FileHeader), SEEK_END);
-        printf("went to the last header\n");
+        fseek(file, -sizeof(FileHeader), SEEK_END);
         fread(marker, sizeof(FileHeader), 1, file);
-        printf("read last header\n");
         if (fileHeaderCmp(marker, "|FI|")){
-            printf("this header is not |FI| it is in fact %s\n", marker);
             return false;
         }
         fseek(file, sizeof(FileHeader), SEEK_SET);
-        printf("Went right back to the second header\n");*/
     }
 
     fread(&marker, sizeof(FileHeader), 1, file);
@@ -147,12 +161,15 @@ bool deserializeDrawable(const char* fileName, drawable_t* newDrawable){
 
     fread(&marker, sizeof(FileHeader), 1, file);
     if (!fileHeaderCmp(marker, ":XY:")){
-        while (fread(&xBuff, sizeof(float), 1, file) && fread(&yBuff, sizeof(float), 1, file)){
+        long EndXYpos = scanForHeader(file, "|XY|");
+        printf("nodes from %ld to %ld",ftell(file), EndXYpos);
+        while (ftell(file) < EndXYpos){
+            fread(&xBuff, sizeof(float), 1, file);
+            fread(&yBuff, sizeof(float), 1, file);
             addNode(newDrawable, xBuff, yBuff);
             printf("node added: x = %f, y = %f\n", xBuff, yBuff);
-        } // I want to scan for an end XY header, store its position and store XY data till the position is hit
+        }
     }
-
 
     fclose(file);
 

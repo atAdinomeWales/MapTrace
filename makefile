@@ -8,8 +8,10 @@ NAME = mpt
 SRC = main.c IoHandler.c MapTrace.c
 HED = IoHandler.h MapTrace.h
 
-$(TARGET): $(HED)
-	$(CC) $(CFLAGS) $(SDL_FLAGS) $(SRC) -o $(NAME)
+SRC_DIR = ./src
+
+$(TARGET): $(addprefix $(SRC_DIR)/, $(HED))
+	$(CC) $(CFLAGS) $(SDL_FLAGS) $(addprefix $(SRC_DIR)/, $(SRC)) -o $(NAME)
 
 clean:
 	rm -f $(NAME)
