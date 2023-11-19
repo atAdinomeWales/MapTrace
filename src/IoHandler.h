@@ -15,9 +15,15 @@ enum headerEnum{
     HED_END_EXIT    = 4
 };
 
+enum compareDrawables{
+    CMP_DRW_XY,
+    CMP_DRW_COL
+};
+
 uint8_t fileHeaderCmp(FileHeader a, FileHeader b);
-int sweepMemcmp(const void* target, size_t targetSize, const void* buffer, size_t bufferSize);
 long scanForHeader(FILE* file, FileHeader hed);
+void extractXYFromFile(FILE* file, drawable_t* drawable, bool keepCurrPos);
+bool nodeCompareFromeFile(FILE* file, drawable_t* drawable, int check);
 void serializeDrawable(drawable_t* drawable, const char* fileName);
 bool deserializeDrawable(const char* fileName, drawable_t* newDrawable);
 

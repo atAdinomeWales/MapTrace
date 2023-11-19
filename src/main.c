@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "MapTrace.h"
 #include "IoHandler.h"
+#include "basics.h"
 
 #define FILE_NAME "savefile.bin"
 
@@ -77,7 +78,12 @@ int main(int argc, char** argv){
         }
     }
 
-    serializeDrawable(blob, FILE_NAME);
+    if (argvFind(argc, argv, "-ns") < 0){
+        serializeDrawable(blob, FILE_NAME);
+        printf("saved drawable\n");
+    } else {
+        printf("save feature disabled, no savefile generated\n");
+    }
     freeDrawable(blob);
 
     SDL_DestroyWindow(window);

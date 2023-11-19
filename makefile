@@ -5,8 +5,8 @@ SDL_FLAGS = -lSDL2
 TARGET = main
 NAME = mpt
 
-SRC = main.c IoHandler.c MapTrace.c
-HED = IoHandler.h MapTrace.h
+SRC = main.c basics.c IoHandler.c MapTrace.c
+HED = basics.h IoHandler.h MapTrace.h
 
 SRC_DIR = ./src
 
@@ -15,3 +15,4 @@ $(TARGET): $(addprefix $(SRC_DIR)/, $(HED))
 
 clean:
 	rm -f $(NAME)
+	rm -f *.bin

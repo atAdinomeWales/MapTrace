@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "IoHandler.h"
 #include "MapTrace.h"
+#include "basics.h"
 
 
 uint8_t fileHeaderCmp(FileHeader a, FileHeader b){
@@ -23,21 +24,8 @@ uint8_t fileHeaderCmp(FileHeader a, FileHeader b){
     } if ((memcmp(a, "|EX|", sizeof(FileHeader)) == 0)){
         return HED_END_EXIT;
     }
+
     return HED_NO_MATCH;
-}
-
-int sweepMemcmp(const void* target, size_t targetSize, const void* buffer, size_t bufferSize){
-    if (bufferSize < targetSize || !target || !buffer) {
-        return -2;
-    }
-
-    for (size_t n = 0; n < bufferSize - targetSize + 1; n++) {
-        if (memcmp((const char*)buffer + n, target, targetSize) == 0) {
-            return n;
-        }
-    }
-
-    return -1;
 }
 
 long scanForHeader(FILE* file, FileHeader hed){
@@ -70,6 +58,50 @@ long scanForHeader(FILE* file, FileHeader hed){
     return -2;
 }
 
+void extractXYFromFile(FILE* file, drawable_t* drawable, bool keepCurrPos){
+    if (!file || !drawable){
+        return;
+    }
+    long currPos = ftell(file);
+    float xBuff, yBuff;
+    FileHeader marker;
+    fread(&marker, sizeof(FileHeader), 1, file);
+
+    if (!fileHeaderCmp(marker, ":XY:")){
+        long EndXYpos = scanForHeader(file, "|XY|");
+        printf("nodes from %ld to %ld\n",ftell(file), EndXYpos);
+        while (ftell(file) < EndXYpos){
+            fread(&xBuff, sizeof(float), 1, file);
+            fread(&yBuff, sizeof(float), 1, file);
+            addNode(drawable, xBuff, yBuff);
+            printf("node added: x = %f, y = %f\n", xBuff, yBuff);
+        }
+    }
+
+    if (keepCurrPos) { fseek(file, currPos, SEEK_SET); }
+    return;
+}
+
+bool nodeCompareFromeFile(FILE* file, drawable_t* drawable, int check){ //TODO finish this function!
+    if (!file || !drawable){
+        return false;
+    }
+
+    long currPos = ftell(file);
+    fseek(file, 0, SEEK_END);
+    long fSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (check & CMP_DRW_COL){
+        scanForHeader(file, ":CO:");
+    } if (check & CMP_DRW_XY){
+
+    }
+
+    fseek(file, currPos, SEEK_SET);
+    return true;
+}
+
 void serializeDrawable(drawable_t* drawable, const char* fileName){
     if (drawable == NULL){
         return;
@@ -91,10 +123,9 @@ void serializeDrawable(drawable_t* drawable, const char* fileName){
 
     if (fileSize != 0){
         fread(&buffer, sizeof(FileHeader), 1, file);
-        // If the file already exsists, start writing from before |XY|
         if (!fileHeaderCmp(buffer, ":FI:")){
             long XYEndHeaderPos = scanForHeader(file, "|XY|");
-            if(XYEndHeaderPos == -1){
+            if (XYEndHeaderPos < 0){
                 return; // TODO: Check for |FI| then erase the file and start again is the save is invalid
             }
             fseek(file, XYEndHeaderPos, SEEK_SET);
@@ -157,23 +188,10 @@ bool deserializeDrawable(const char* fileName, drawable_t* newDrawable){
 
     newDrawable->head = NULL;
     newDrawable->tail = NULL;
-    float xBuff, yBuff;
 
-    fread(&marker, sizeof(FileHeader), 1, file);
-    if (!fileHeaderCmp(marker, ":XY:")){
-        long EndXYpos = scanForHeader(file, "|XY|");
-        printf("nodes from %ld to %ld",ftell(file), EndXYpos);
-        while (ftell(file) < EndXYpos){
-            fread(&xBuff, sizeof(float), 1, file);
-            fread(&yBuff, sizeof(float), 1, file);
-            addNode(newDrawable, xBuff, yBuff);
-            printf("node added: x = %f, y = %f\n", xBuff, yBuff);
-        }
-    }
+    extractXYFromFile(file, newDrawable, false);
 
     fclose(file);
 
     return true;
 }
-
-//nodeCompareFromeFile();
