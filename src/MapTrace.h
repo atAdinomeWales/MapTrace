@@ -3,8 +3,6 @@
 
 #include <SDL2/SDL.h>
 
-#define ASSERT(_e, ...) if(!(_e)) {fprintf(stderr, __VA_ARGS__); exit(1);}
-
 #define WINDOW_WIDTH 860
 #define WINDOW_HEIGHT 640
 #define PIXEL_THRESHOLD 2
