@@ -69,7 +69,7 @@ void extractXYFromFile(FILE* file, drawable_t* drawable, bool keepCurrPos){
 
     if (!fileHeaderCmp(marker, ":XY:")){
         long EndXYpos = scanForHeader(file, "|XY|");
-        printf("nodes from %ld to %ld\n",ftell(file), EndXYpos);
+        printf("nodes from %ld to %ld, total nodes: %ld\n",ftell(file), EndXYpos, ((EndXYpos - ftell(file)) / 2 ) / (int) sizeof(float));
         while (ftell(file) < EndXYpos){
             fread(&xBuff, sizeof(float), 1, file);
             fread(&yBuff, sizeof(float), 1, file);
