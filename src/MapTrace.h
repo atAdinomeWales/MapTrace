@@ -13,28 +13,49 @@ typedef struct drawNode_t{
     struct drawNode_t* next;
 }drawNode_t;
 
-typedef struct RGB_t{
+typedef struct{
     uint8_t r, g, b, a;
-}RGB_t;
+}RGBA_t;
 
-typedef struct drawable_t {
+typedef struct {
     int resX;
     int resY;
-    RGB_t color;
+    RGBA_t color;
     SDL_Texture* texture;
     struct drawNode_t* head;
     struct drawNode_t* tail;
+    struct layer_t* parent_layer;
 }drawable_t;
 
-/*typedef struct layer_t {
+typedef struct {
+    drawable_t* drawable;
+    struct drawable_node* next;
+    struct drawable_node* prev;
+} drawable_node;
 
-} layer;*/
+typedef struct {
+    drawable_node* head;
+    drawable_node* tail;
+    int flags;
+    RGBA_t default_color;
+    struct layer_t* next;
+} layer_t;
 
-void addNode(struct drawable_t* drawable, float x, float y);
+
+void addXYNode(drawable_t* drawable, float x, float y);
 void freeDrawNodes(drawNode_t* head);
-void freeDrawable(drawable_t* d);
-void drawPoint(struct drawNode_t* node, SDL_Renderer* renderer, RGB_t n);
-void drawLine(struct drawNode_t* node, SDL_Renderer* renderer, RGB_t n);
-void renderDrawable(struct drawable_t* drawable, SDL_Renderer* renderer);
+
+drawable_t* addDrawable (layer_t* layer);
+void freeDrawableNode (drawable_node* dnode);
+void freeDrawableList (drawable_node* dnode);
+void freeDrawable (drawable_t* d);
+
+void drawPoint (drawNode_t* node, SDL_Renderer* renderer, RGBA_t n);
+void drawLine (drawNode_t* node, SDL_Renderer* renderer, RGBA_t n);
+void renderDrawable (drawable_t* drawable, SDL_Renderer* renderer);
+
+layer_t* createLayer (int flags, layer_t* head);
+void freeLayer (layer_t* layer);
+
 
 #endif//MAP_TRACE_H

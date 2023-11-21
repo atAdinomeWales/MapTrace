@@ -22,18 +22,11 @@ int main(int argc, char** argv){
     SDL_Event event;
 
 
-    drawable_t* blob = malloc(sizeof(drawable_t));
-    if (!deserializeDrawable(FILE_NAME, blob)){
-        blob->head = NULL;
-        blob->tail = NULL;
-        blob->color.a = 255;
-        blob->color.r = 100;
-        blob->color.g = 100;
-        blob->color.b = 100;
-    }
-    blob->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WINDOW_WIDTH, WINDOW_HEIGHT);
-    blob->resX = 0;
-    blob->resY = 0;
+    layer_t* layer = createLayer(0, NULL);
+    drawable_t* blob = addDrawable(layer);
+
+    deserializeDrawable(FILE_NAME, blob);
+
 
     int mx = 0;
     int oldmx = 0;
@@ -53,7 +46,7 @@ int main(int argc, char** argv){
                     SDL_GetMouseState(&mx, &my);
                     oldmx = mx;
                     oldmy = my;
-                    addNode(blob, (float)mx, (float)my);
+                    addXYNode(blob, (float)mx, (float)my);
                     break;
                 case SDL_MOUSEBUTTONUP:
                     isDragging = false;
@@ -62,7 +55,7 @@ int main(int argc, char** argv){
                     if (isDragging){
                         SDL_GetMouseState(&mx, &my);
                         if ((oldmx - mx > pixT || oldmx - mx < -pixT) || (oldmy - my > pixT || oldmy - my < -pixT)){
-                            addNode(blob, (float)mx, (float)my);
+                            addXYNode(blob, (float)mx, (float)my);
                             oldmx = mx;
                             oldmy = my;
                         }
@@ -84,7 +77,6 @@ int main(int argc, char** argv){
     } else {
         printf("save feature disabled, no savefile generated\n");
     }
-    freeDrawable(blob);
 
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);

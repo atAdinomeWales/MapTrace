@@ -69,12 +69,13 @@ void extractXYFromFile(FILE* file, drawable_t* drawable, bool keepCurrPos){
 
     if (!fileHeaderCmp(marker, ":XY:")){
         long EndXYpos = scanForHeader(file, "|XY|");
-        printf("nodes from %ld to %ld, total nodes: %ld\n",ftell(file), EndXYpos, ((EndXYpos - ftell(file)) / 2 ) / (int) sizeof(float));
+        int nodeCount = (int)( ( EndXYpos - ftell(file) ) / 2 ) / sizeof(xBuff);
+        printf("nodes from %ld to %ld, total nodes: %ld\n",ftell(file), EndXYpos, nodeCount);
         while (ftell(file) < EndXYpos){
             fread(&xBuff, sizeof(float), 1, file);
             fread(&yBuff, sizeof(float), 1, file);
-            addNode(drawable, xBuff, yBuff);
-            printf("node added: x = %f, y = %f\n", xBuff, yBuff);
+            addXYNode(drawable, xBuff, yBuff);
+            if (nodeCount < 200) { printf("node added: x = %d, y = %d\n", (int)xBuff, (int)yBuff); }
         }
     }
 
@@ -140,7 +141,7 @@ void serializeDrawable(drawable_t* drawable, const char* fileName){
 
     fwrite(":FI:", sizeof(FileHeader), 1, file);
     fwrite(":CO:", sizeof(FileHeader), 1, file);
-    fwrite(&drawable->color, sizeof(RGB_t), 1, file);
+    fwrite(&drawable->color, sizeof(RGBA_t), 1, file);
     fwrite("|CO|", sizeof(FileHeader), 1, file);
     fwrite(":XY:", sizeof(FileHeader), 1, file);
     while (curr){
@@ -178,7 +179,7 @@ bool deserializeDrawable(const char* fileName, drawable_t* newDrawable){
 
     fread(&marker, sizeof(FileHeader), 1, file);
     if (!fileHeaderCmp(marker, ":CO:")) {
-        fread(&newDrawable->color, sizeof(RGB_t), 1, file);
+        fread(&newDrawable->color, sizeof(RGBA_t), 1, file);
         printf("R: %d, G: %d, B: %d, A: %d\n", newDrawable->color.r, newDrawable->color.g, newDrawable->color.b, newDrawable->color.a);
         fread(&marker, sizeof(FileHeader), 1, file);
         if (fileHeaderCmp(marker, "|CO|")){
